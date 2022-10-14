@@ -1,0 +1,97 @@
+<html>
+  <head>
+    <style>
+      body {
+          background-color: #152133;
+          color: #d9e8ff;
+      }
+    </style>
+    <script>
+      // assuming that `s` is type of set
+      const toStr = (s) => Array.from(s).join('');
+
+      // Should only be triggered on first page load
+      console.log('welcome in my homemade playfair cypher powered by my cgi');
+
+      // Create a keyword for the cypher table
+      // `j` -> `i`, you can omit other letter otherwise
+      const letters = "abcdefghiklmnopqrstuvwxyz";
+      let keyword = "jajacek";
+      // const replaceFrom = "j";  // use RegEx object for that
+      // const replaceTo = "i";
+      // let replaced = new Set(keyword.replace(/j/gi, replaceTo));
+      // NOTE: for now I replace `j` with `i` by default
+      const replaced = toStr(new Set(keyword.replace(/j/gi, "i")));
+      console.log("replaced " + keyword + " with " + replaced);
+
+      const contentForTable = toStr(new Set(replaced + letters));
+      console.log(contentForTable);
+
+      // Initialize empty cypher table (5x5 as in 26-1)
+      var arr = Array.from(Array(5), () => new Array(5));
+      for (let i = 0; i < 5; i++) {
+          for (let j = 0; j < 5; j++) {
+              arr[i][j] = contentForTable[i*5 + j];
+          }
+      }
+
+      const isInRow = (arr, x, y) => {
+          for (let row = 0; row < 5; row++) {
+              const rowStr = toStr(arr[row]);
+              x_idx = rowStr.indexOf(x)
+              y_idx = rowStr.indexOf(y)
+              if (x_idx >= 0 && y_idx >= 0) {
+                  return [(x_idx + 1) % 5,
+                          (y_idx + 1) % 5];
+              }
+          }
+          return false;
+      }
+
+      const isInCol = (arr, x, y) => {
+          for (let col = 0; col < 5; col++) {
+              var getCol = (arr, col) => arr.map((c) => c[col]);
+              const colStr = toStr(getCol(arr, col));
+              if (colStr.indexOf(x) >= 0 && colStr.indexOf(y) >= 0) {
+                  return [(colStr.indexOf(x) + 1) % 5,
+                          (colStr.indexOf(y) + 1) % 5];
+              }
+          }
+          return false;
+      }
+
+      // implement playfair algorithm
+
+      window.addEventListener("DOMContentLoaded", () => {
+          // `input` instead of `submit` as event listener type
+          document.getElementById('my-form').addEventListener("submit", (e) => {
+              e.preventDefault(); // before the code
+              /* do what you want with the form */
+
+              document.getElementById("keyword-result").innerHTML =
+                  document.getElementById('keyword').value;
+
+              document.getElementById("content-result").innerHTML =
+                  document.getElementById('content').value;
+          })
+      });
+    </script>
+  <head>
+    <body>
+      <form id="my-form">
+        <label for="keyword">Keyword to cypher by:</label>
+        <br/>
+        <input type="text" name="keyword" id="keyword" />
+        <br/>
+        <label for="content">Content to cypher</label>
+        <br/>
+        <input type="text" name="content" id="content" />
+        <br/>
+        <button type="submit">Go</button>
+      </form>
+      <span id="keyword-log">Your keyword:</span>
+      <div id="keyword-result"></div>
+      <span id="content-log">Your content:</span>
+      <div id="content-result"></div>
+    </body>
+</html>
