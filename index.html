@@ -7,8 +7,8 @@
       }
     </style>
     <script>
-      // assuming that `s` is type of set
-      const toStr = (s) => Array.from(s).join('');
+      // works for sets for sure
+      const to_str = (s) => Array.from(s).join('');
 
       // Should only be triggered on first page load
       console.log('welcome in my homemade playfair cypher powered by my cgi');
@@ -21,11 +21,11 @@
       // const replaceTo = "i";
       // let replaced = new Set(keyword.replace(/j/gi, replaceTo));
       // NOTE: for now I replace `j` with `i` by default
-      const replaced = toStr(new Set(keyword.replace(/j/gi, "i")));
+      const replaced = to_str(new Set(keyword.replace(/j/gi, "i")));
       console.log("replaced " + keyword + " with " + replaced);
 
-      const contentForTable = toStr(new Set(replaced + letters));
-      console.log(contentForTable);
+      const content_for_table = to_str(new Set(replaced + letters));
+      console.log(content_for_table);
 
       // Initialize empty cypher table (5x5 as in 26-1)
       var arr = Array.from(Array(5), () => new Array(5));
@@ -35,9 +35,9 @@
           }
       }
 
-      const isInRow = (arr, x, y) => {
+      const is_in_row = (arr, x, y) => {
           for (let row = 0; row < 5; row++) {
-              const rowStr = toStr(arr[row]);
+              const row_str = to_str(arr[row]);
               x_idx = rowStr.indexOf(x)
               y_idx = rowStr.indexOf(y)
               if (x_idx >= 0 && y_idx >= 0) {
@@ -48,19 +48,22 @@
           return false;
       }
 
-      const isInCol = (arr, x, y) => {
+      const is_in_col = (arr, x, y) => {
           for (let col = 0; col < 5; col++) {
-              var getCol = (arr, col) => arr.map((c) => c[col]);
-              const colStr = toStr(getCol(arr, col));
-              if (colStr.indexOf(x) >= 0 && colStr.indexOf(y) >= 0) {
-                  return [(colStr.indexOf(x) + 1) % 5,
-                          (colStr.indexOf(y) + 1) % 5];
+              var get_col = (arr, col) => arr.map((c) => c[col]);
+              const col_str = to_str(get_col(arr, col));
+              x_idx = col_str.indexOf(x);
+              y_idx = col_str.indexOf(y);
+              if (x_idx >= 0 && y_idx >= 0) {
+                  return [(x_idx + 1) % 5,
+                          (y_idx + 1) % 5];
               }
           }
           return false;
       }
 
       // implement playfair algorithm
+      // TODO
 
       window.addEventListener("DOMContentLoaded", () => {
           // `input` instead of `submit` as event listener type
