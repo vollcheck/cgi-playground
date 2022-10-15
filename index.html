@@ -7,97 +7,205 @@
       }
     </style>
     <script>
-      // works for sets for sure
-      const to_str = (s) => Array.from(s).join('');
-
       // Should only be triggered on first page load
-      console.log('welcome in my homemade playfair cypher powered by my cgi');
+      console.log("welcome in my homemade playfair cypher powered by my cgi");
 
-      // Create a keyword for the cypher table
-      // `j` -> `i`, you can omit other letter otherwise
-      const letters = "abcdefghiklmnopqrstuvwxyz";
-      let keyword = "jajacek";
-      // const replaceFrom = "j";  // use RegEx object for that
-      // const replaceTo = "i";
-      // let replaced = new Set(keyword.replace(/j/gi, replaceTo));
-      // NOTE: for now I replace `j` with `i` by default
-      const replaced = to_str(new Set(keyword.replace(/j/gi, "i")));
-      console.log("replaced " + keyword + " with " + replaced);
+      // constants
+      const DEBUG = false;
+      const WIDTH = 5;
+      const HEIGHT = 5;
+      const REPL = "x"; // char for replacing the spaces
+      const LETTERS = "abcdefghiklmnopqrstuvwxyz";
 
-      const content_for_table = to_str(new Set(replaced + letters));
-      console.log(content_for_table);
+      // works for sets for sure
+      const to_str = (s) => Array.from(s).join("");
 
-      // Initialize empty cypher table (5x5 as in 26-1)
-      var arr = Array.from(Array(5), () => new Array(5));
-      for (let i = 0; i < 5; i++) {
-          for (let j = 0; j < 5; j++) {
-              arr[i][j] = content_for_table[i*5 + j];
+      const get_rowal = (arr, x, y, decyphering = false) => {
+        var movement;
+        if (decyphering) {
+          movement = -1
+        } else {
+          movement = 1
+        }
+
+        for (let row = 0; row < HEIGHT; row++) {
+          const row_str = to_str(arr[row]);
+          var x_idx = row_str.indexOf(x);
+          var y_idx = row_str.indexOf(y);
+          if (x_idx >= 0 && y_idx >= 0) {
+            return row_str[(x_idx + movement) % WIDTH] + row_str[(y_idx + movement) % HEIGHT];
           }
-      }
+        }
+        return false;
+      };
 
-      const is_in_row = (arr, x, y) => {
-          for (let row = 0; row < 5; row++) {
-              const row_str = to_str(arr[row]);
-              x_idx = rowStr.indexOf(x)
-              y_idx = rowStr.indexOf(y)
-              if (x_idx >= 0 && y_idx >= 0) {
-                  return [(x_idx + 1) % 5,
-                          (y_idx + 1) % 5];
-              }
+      const get_col = (arr, col) => arr.map((c) => c[col]);
+
+      const get_columnar = (arr, x, y, decyphering = false) => {
+        var movement;
+        if (decyphering) {
+          movement = -1
+        } else {
+          movement = 1
+        }
+
+        for (let col = 0; col < WIDTH; col++) {
+          const col_str = to_str(get_col(arr, col));
+          var x_idx = col_str.indexOf(x);
+          var y_idx = col_str.indexOf(y);
+          if (x_idx >= 0 && y_idx >= 0) {
+            return col_str[(x_idx + movement) % WIDTH] + col_str[(y_idx + movement) % HEIGHT];
           }
-          return false;
-      }
+        }
+        return false;
+      };
 
-      const is_in_col = (arr, x, y) => {
-          for (let col = 0; col < 5; col++) {
-              var get_col = (arr, col) => arr.map((c) => c[col]);
-              const col_str = to_str(get_col(arr, col));
-              x_idx = col_str.indexOf(x);
-              y_idx = col_str.indexOf(y);
-              if (x_idx >= 0 && y_idx >= 0) {
-                  return [(x_idx + 1) % 5,
-                          (y_idx + 1) % 5];
-              }
+      const get_coords = (arr, ch) => {
+        for (let i = 0; i < HEIGHT; i++) {
+          for (let j = 0; j < WIDTH; j++) {
+            if (arr[i][j] == ch) {
+              return [i, j];
+            }
           }
-          return false;
-      }
+        }
+        return false;
+      };
 
-      // implement playfair algorithm
-      // TODO
       const get_other = (arr, x, y) => {
-          return;
+        let x_row, x_col, y_row, y_col;
+        if (DEBUG) console.log("Processing " + x + " and " + y);
+        [x_row, x_col] = get_coords(arr, x);
+        [y_row, y_col] = get_coords(arr, y);
+        return arr[x_row][y_col] + arr[y_row][x_col];
+      };
+
+      const make_diags = (word) => {
+        console.log("make diags" + word);
+        word = word.replace(/ /g, "");
+        word = word.replace(/j/gi, "i");
+        const spacing = 2;
+        var output = [];
+        for (let i = 0; i < word.length; i += spacing) {
+          var x, y;
+          var slic = word.slice(i, i + spacing);
+
+          // there is no second letter
+          if (slic.length != 2) {
+            slic += "x";
+          }
+          [x, y] = slic;
+
+          // if both letters are the same
+          if (x == y) {
+            slic = x + REPL;
+            i--;
+          }
+
+          output[output.length] = slic;
+        }
+        return output;
+      };
+
+      const make_arr = (keyword) => {
+        console.log("Trying to use keyword " + keyword);
+        // keyword configuration
+        // `j` -> `i`, you can omit other letter otherwise
+        // const replaceFrom = "j";  // use RegEx object for that
+        // const replaceTo = "i";
+        // let replaced = new Set(keyword.replace(/j/gi, replaceTo));
+        // NOTE: for now I replace `j` with `i` by default
+        const replaced_keyword = to_str(new Set(keyword.replace(/j/gi, "i")));
+        if (DEBUG) console.log("replaced " + keyword + " with " + replaced);
+
+        const content_for_table = to_str(new Set(replaced_keyword + LETTERS));
+        if (DEBUG) console.log("content for table: " + content_for_table);
+
+        // Initialize empty cypher table (5x5 as in 26-1)
+        var arr = Array.from(Array(WIDTH), () => new Array(HEIGHT));
+        for (let i = 0; i < WIDTH; i++) {
+          for (let j = 0; j < HEIGHT; j++) {
+            arr[i][j] = content_for_table[i * HEIGHT + j];
+          }
+        }
+        return arr;
       }
+
+      const cypher = (keyword, content) => {
+        var output = "";
+
+        const arr = make_arr(keyword);
+
+        // preparing input
+        const diags = make_diags(content);
+        for (var i = 0; i < diags.length; i++) {
+          var first, second;
+          [first, second] = diags[i];
+          output +=
+            get_rowal(arr, first, second) ||
+            get_columnar(arr, first, second) ||
+            get_other(arr, first, second);
+        }
+        return output;
+      };
+
+      const decypher = (keyword, content) => {
+        var output = "";
+
+        const arr = make_arr(keyword);
+
+        // preparing input
+        const diags = make_diags(content);
+        for (var i = 0; i < diags.length; i++) {
+          var first, second;
+          [first, second] = diags[i];
+          output +=
+            get_rowal(arr, first, second, true) ||
+            get_columnar(arr, first, second, true) ||
+            get_other(arr, first, second);
+        }
+        return output;
+      };
 
       window.addEventListener("DOMContentLoaded", () => {
-          // `input` instead of `submit` as event listener type
-          document.getElementById('my-form').addEventListener("submit", (e) => {
-              e.preventDefault(); // before the code
-              /* do what you want with the form */
+        // `input` instead of `submit` as event listener type
+        document.getElementById("my-form").addEventListener("submit", (e) => {
+          e.preventDefault(); // before the code
+          /* do what you want with the form */
 
-              document.getElementById("keyword-result").innerHTML =
-                  document.getElementById('keyword').value;
+          const keyword = document.getElementById("keyword").value;
+          const content = document.getElementById("content").value;
 
-              document.getElementById("content-result").innerHTML =
-                  document.getElementById('content').value;
-          })
+          // const content_result = cypher(keyword, content);
+          const content_result = decypher(keyword, content);
+
+          document.getElementById("keyword-result").innerHTML = keyword;
+          document.getElementById("content-result").innerHTML = content_result;
+        });
       });
+
+      // test
+      // wikipediajestnajlepsza
+      // vklkqdckcgarumcgqlmfsb
     </script>
   <head>
     <body>
       <form id="my-form">
         <label for="keyword">Keyword to cypher by:</label>
-        <br/>
+        <br />
         <input type="text" name="keyword" id="keyword" />
-        <br/>
+        <br />
         <label for="content">Content to cypher</label>
-        <br/>
+        <br />
         <input type="text" name="content" id="content" />
-        <br/>
+        <br />
         <button type="submit">Go</button>
       </form>
+
       <span id="keyword-log">Your keyword:</span>
       <div id="keyword-result"></div>
       <span id="content-log">Your content:</span>
       <div id="content-result"></div>
     </body>
+  </head>
+  </head>
 </html>
