@@ -15,6 +15,7 @@
       console.log("welcome in my homemade playfair cypher powered by my cgi");
 
       // constants
+      const DECYPHER = false;
       const DEBUG = false;
       const WIDTH = 5;
       const HEIGHT = 5;
@@ -178,8 +179,11 @@
           const keyword = document.getElementById("keyword").value;
           const content = document.getElementById("content").value;
 
-          // const content_result = cypher(keyword, content);
-          const content_result = decypher(keyword, content);
+          if (!decypher) {
+            const content_result = cypher(keyword, content);
+          } else {
+            const content_result = decypher(keyword, content);
+          }
 
           document.getElementById("keyword-result").innerHTML = keyword;
           document.getElementById("content-result").innerHTML = content_result;
