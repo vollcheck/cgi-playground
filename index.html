@@ -5,6 +5,10 @@
           background-color: #152133;
           color: #d9e8ff;
       }
+
+      label {
+          font-size: 30px;
+      }
     </style>
     <script>
       // Should only be triggered on first page load
@@ -107,7 +111,6 @@
       };
 
       const make_arr = (keyword) => {
-        console.log("Trying to use keyword " + keyword);
         // keyword configuration
         // `j` -> `i`, you can omit other letter otherwise
         // const replaceFrom = "j";  // use RegEx object for that
@@ -168,7 +171,7 @@
 
       window.addEventListener("DOMContentLoaded", () => {
         // `input` instead of `submit` as event listener type
-        document.getElementById("my-form").addEventListener("submit", (e) => {
+        document.getElementById("my-form").addEventListener("input", (e) => {
           e.preventDefault(); // before the code
           /* do what you want with the form */
 
